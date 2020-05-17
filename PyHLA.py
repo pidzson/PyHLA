@@ -53,6 +53,11 @@ def allelicCount(infile, digits, perm=False):
             if alleles[i] != 'NA' and alleles[j] != 'NA':
                 names1 = alleles[i].split(":")
                 names2 = alleles[j].split(":")
+                if digits == 8:
+                    if len(names1) < 4 or len(names2) < 4:
+                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
+                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
+                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
                 if digits == 6:
                     if len(names1) < 3 or len(names2) < 3:
                         sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
@@ -136,6 +141,11 @@ def domCount(infile, digits, perm=False):
             if alleles[i] != 'NA' and alleles[j] != 'NA':
                 names1 = alleles[i].split(":")
                 names2 = alleles[j].split(":")
+                if digits == 8:
+                    if len(names1) < 4 or len(names2) < 4:
+                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
+                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
+                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
                 if digits == 6:
                     if len(names1) < 3 or len(names2) < 3:
                         sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
@@ -210,6 +220,11 @@ def recCount(infile, digits, perm=False):
             if alleles[i] != 'NA' and alleles[j] != 'NA':
                 names1 = alleles[i].split(":")
                 names2 = alleles[j].split(":")
+                if digits == 8:
+                    if len(names1) < 4 or len(names2) < 4:
+                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
+                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
+                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
                 if digits == 6:
                     if len(names1) < 3 or len(names2) < 3:
                         sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
@@ -296,6 +311,11 @@ def alleleCount(infile, digits):
             if alleles[i] != 'NA' and alleles[j] != 'NA':
                 names1 = alleles[i].split(":")
                 names2 = alleles[j].split(":")
+                if digits == 8:
+                    if len(names1) < 4 or len(names2) < 4:
+                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
+                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
+                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
                 if digits == 6:
                     if len(names1) < 3 or len(names2) < 3:
                         sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
@@ -1576,6 +1596,13 @@ def getAlleles(infile, digits):
                             geneAlleles[gene[0]].append(temp)
                     else:
                         sys.exit('please use a lower digits!')
+                elif digits == 8:
+                    if len(names)>=4:
+                        temp = names[0] + ":" + names[1] + ":" + names[2] + ":" + names[3]
+                        if temp not in geneAlleles[gene[0]]:
+                            geneAlleles[gene[0]].append(temp)
+                    else:
+                        sys.exit('please use a lower digits!')
     f.close()
     return geneAlleles, geneCol
 def allelicRecode(infile, digits, test, model):
@@ -1603,15 +1630,18 @@ def allelicRecode(infile, digits, test, model):
                 gene1 = alleles[i].split('*')[0]
                 gene2 = alleles[j].split('*')[0]
                 if gene1 == gene2:
-                    if digits == 4:
-                        allele1 = alleles[i].split(':')[0] + ':' + alleles[i].split(':')[1]
-                        allele2 = alleles[j].split(':')[0] + ':' + alleles[j].split(':')[1]
-                    elif digits == 2:
+                    if digits == 2:
                         allele1 = alleles[i].split(':')[0]
                         allele2 = alleles[j].split(':')[0]
+                    elif digits == 4:
+                        allele1 = alleles[i].split(':')[0] + ':' + alleles[i].split(':')[1]
+                        allele2 = alleles[j].split(':')[0] + ':' + alleles[j].split(':')[1]
                     elif digits == 6:
                         allele1 = alleles[i].split(':')[0] + ':' + alleles[i].split(':')[1] + ':' + alleles[i].split(':')[2]
                         allele2 = alleles[j].split(':')[0] + ':' + alleles[j].split(':')[1] + ':' + alleles[j].split(':')[2]
+                    elif digits == 8:
+                        allele1 = alleles[i].split(':')[0] + ':' + alleles[i].split(':')[1] + ':' + alleles[i].split(':')[2] + ':' + alleles[i].split(':')[3]
+                        allele2 = alleles[j].split(':')[0] + ':' + alleles[j].split(':')[1] + ':' + alleles[j].split(':')[2] + ':' + alleles[j].split(':')[3]
                     gAlleles = sorted(geneAlleles[gene1])
                     for ga in gAlleles:
                         if ga not in header:
@@ -1744,6 +1774,8 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
                     nname = nname + ':' + aname[2]
                 elif digits == 6:
                     nname = nname + ':' + aname[2] + ':' + aname[3]
+                elif digits == 8:
+                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[4]
                 ss = []
                 ss.append(n1)
                 ss.append(n2)
@@ -1817,6 +1849,8 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
                     nname = nname + ':' + aname[2]
                 elif digits == 6:
                     nname = nname + ':' + aname[2] + ':' + aname[3]
+                elif digits == 8:
+                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[4]
                 if nname in assoc:
                     myformula = 'PHT ~ ' + allele
                     if covfile is None:
@@ -1916,6 +1950,8 @@ def regressionLinear(infile, digits, freq, model = 'additive', adjust = 'FDR', e
                     nname = nname + ':' + aname[2]
                 elif digits == 6:
                     nname = nname + ':' + aname[2] + ':' + aname[3]
+                elif digits == 8:
+                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[3]
                 ss = []
                 ss.append(f12)
                 if p != 'NA':
@@ -1983,6 +2019,8 @@ def regressionLinear(infile, digits, freq, model = 'additive', adjust = 'FDR', e
                     nname = nname + ':' + aname[2]
                 elif digits == 6:
                     nname = nname + ':' + aname[2] + ':' + aname[3]
+                elif digits == 8:
+                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[4]
                 if nname in assoc:
                     myformula = 'PHT ~ ' + allele
                     if covfile is None:
@@ -2500,6 +2538,11 @@ def readAlleleZygInteract(infile, digits):
             if alleles[i] != 'NA' and alleles[j] != 'NA':
                 names1 = alleles[i].split(":")
                 names2 = alleles[j].split(":")
+                if digits == 8:
+                    if len(names1) < 4 or len(names2) < 4:
+                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
+                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
+                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
                 if digits == 6:
                     if len(names1) < 3 or len(names2) < 3:
                         sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
@@ -2842,7 +2885,7 @@ parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.1.1
 parser.add_argument('-V', '--print', help='print output to screen', action='store_true')
 parser.add_argument('-i', '--input', help='input file', required=True, type=str)
 parser.add_argument('-o', '--out', help='output file', default='output.txt')
-parser.add_argument('-d', '--digit', help='digit to test, default 4', default=4, type=int, choices=[2,4,6])
+parser.add_argument('-d', '--digit', help='digit to test, default 4', default=4, type=int, choices=[2,4,6,8])
 ### summary
 parser.add_argument('-s', '--summary', help='data summary', action='store_true')
 ### association analysis
