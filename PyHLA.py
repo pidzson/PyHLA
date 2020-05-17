@@ -14,6 +14,15 @@ import random
 import math
 import os
 import string
+###################### Helper Functions ####################################################
+def get_a4d(names, digits):
+    assert(digits % 2 == 0, "digits must be even")
+    digits_div_2 = digits//2
+    if len(names) < digits_div_2:
+        sys.exit("--digits {} requires at least {} digits resolution genotype!".format(digits,digits))
+    return ':'.join(names[:digits_div_2])
+
+
 ###################### HLAcount ############################################################
 def allelicCount(infile, digits, perm=False):
     '''
@@ -51,28 +60,8 @@ def allelicCount(infile, digits, perm=False):
         for i in range(2,len(alleles),2):
             j = i + 1
             if alleles[i] != 'NA' and alleles[j] != 'NA':
-                names1 = alleles[i].split(":")
-                names2 = alleles[j].split(":")
-                if digits == 8:
-                    if len(names1) < 4 or len(names2) < 4:
-                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
-                if digits == 6:
-                    if len(names1) < 3 or len(names2) < 3:
-                        sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2]
-                if digits == 4:
-                    if len(names1) < 2 or len(names2) < 2:
-                        sys.exit("--digits 4 requires at least 4 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1]
-                    a4d2 = names2[0] + ":" + names2[1]
-                elif digits == 2:
-                    if len(names1) < 1 or len(names2) < 1:
-                        sys.exit("--digits 2 requires at least 2 digits resolution genotype!")
-                    a4d1 = names1[0]
-                    a4d2 = names2[0]
+                a4d1 = get_a4d(alleles[i].split(":"),digits)
+                a4d2 = get_a4d(alleles[j].split(":"),digits)
                 if pht[l] == "2":
                     if a4d1.split('*')[0] in np:
                         np[a4d1.split('*')[0]] += 1
@@ -113,6 +102,8 @@ def allelicCount(infile, digits, perm=False):
         l += 1
     f.close()
     return case, control, np, nc, nn
+
+
 def domCount(infile, digits, perm=False):
     '''
     count all alleles
@@ -139,28 +130,8 @@ def domCount(infile, digits, perm=False):
         for i in range(2,len(alleles),2):
             j = i + 1
             if alleles[i] != 'NA' and alleles[j] != 'NA':
-                names1 = alleles[i].split(":")
-                names2 = alleles[j].split(":")
-                if digits == 8:
-                    if len(names1) < 4 or len(names2) < 4:
-                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
-                if digits == 6:
-                    if len(names1) < 3 or len(names2) < 3:
-                        sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2]
-                if digits == 4:
-                    if len(names1) < 2 or len(names2) < 2:
-                        sys.exit("--digits 4 requires at least 4 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1]
-                    a4d2 = names2[0] + ":" + names2[1]
-                elif digits == 2:
-                    if len(names1) < 1 or len(names2) < 1:
-                        sys.exit("--digits 2 requires at least 2 digits resolution genotype!")
-                    a4d1 = names1[0]
-                    a4d2 = names2[0]
+                a4d1 = get_a4d(alleles[i].split(":"),digits)
+                a4d2 = get_a4d(alleles[j].split(":"),digits)
                 if pht[l] == "2":
                     if a4d1.split('*')[0] in np:
                         np[a4d1.split('*')[0]] += 1
@@ -192,6 +163,8 @@ def domCount(infile, digits, perm=False):
         l += 1
     f.close()
     return case, control, np, nc, nn
+
+
 def recCount(infile, digits, perm=False):
     '''
     count all alleles
@@ -218,28 +191,8 @@ def recCount(infile, digits, perm=False):
         for i in range(2,len(alleles),2):
             j = i + 1
             if alleles[i] != 'NA' and alleles[j] != 'NA':
-                names1 = alleles[i].split(":")
-                names2 = alleles[j].split(":")
-                if digits == 8:
-                    if len(names1) < 4 or len(names2) < 4:
-                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
-                if digits == 6:
-                    if len(names1) < 3 or len(names2) < 3:
-                        sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2]
-                if digits == 4:
-                    if len(names1) < 2 or len(names2) < 2:
-                        sys.exit("--digits 4 requires at least 4 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1]
-                    a4d2 = names2[0] + ":" + names2[1]
-                elif digits == 2:
-                    if len(names1) < 1 or len(names2) < 1:
-                        sys.exit("--digits 2 requires at least 2 digits resolution genotype!")
-                    a4d1 = names1[0]
-                    a4d2 = names2[0]
+                a4d1 = get_a4d(alleles[i].split(":"),digits)
+                a4d2 = get_a4d(alleles[j].split(":"),digits)
                 if pht[l] == "2":
                     if a4d1.split('*')[0] in np:
                         np[a4d1.split('*')[0]] += 1
@@ -263,6 +216,8 @@ def recCount(infile, digits, perm=False):
         l += 1
     f.close()
     return case, control, np, nc, nn
+
+
 def hlaFreq(caseAlleles, ctrlAlleles, np, nc, nn):
     '''
     Frequency of all alleles
@@ -293,6 +248,8 @@ def hlaFreq(caseAlleles, ctrlAlleles, np, nc, nn):
             ff.append(1.0 * ctrlAlleles[allele] / (np[allele.split('*')[0]] + nc[allele.split('*')[0]]))
         freq[allele] = ff
     return freq, alleles
+
+
 def alleleCount(infile, digits):
     '''
     count all alleles for quantitative traits
@@ -309,28 +266,8 @@ def alleleCount(infile, digits):
         for i in range(2,len(alleles),2):
             j = i + 1
             if alleles[i] != 'NA' and alleles[j] != 'NA':
-                names1 = alleles[i].split(":")
-                names2 = alleles[j].split(":")
-                if digits == 8:
-                    if len(names1) < 4 or len(names2) < 4:
-                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
-                if digits == 6:
-                    if len(names1) < 3 or len(names2) < 3:
-                        sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2]
-                if digits == 4:
-                    if len(names1) < 2 or len(names2) < 2:
-                        sys.exit("--digits 4 requires at least 4 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1]
-                    a4d2 = names2[0] + ":" + names2[1]
-                elif digits == 2:
-                    if len(names1) < 1 or len(names2) < 1:
-                        sys.exit("--digits 2 requires at least 2 digits resolution genotype!")
-                    a4d1 = names1[0]
-                    a4d2 = names2[0]
+                a4d1 = get_a4d(alleles[i].split(":"),digits)
+                a4d2 = get_a4d(alleles[j].split(":"),digits)
                 if a4d1.split('*')[0] in genesN:
                     genesN[a4d1.split('*')[0]] += 1
                 else:
@@ -349,6 +286,8 @@ def alleleCount(infile, digits):
                     allelesN[a4d2] = 1
     f.close()
     return allelesN, genesN, N
+
+
 def quantTrait(infile):
     f = open(infile)
     for line in f:
@@ -358,6 +297,8 @@ def quantTrait(infile):
             return True
     f.close()
     return False
+
+
 ######################### HLAIO ############################################################
 def printSummary(alleles, freq, caseAlleles, ctrlAlleles, np, nc, nn, popCase, popCtrl, popP, popC):
     print('Sample size: %d'  % nn[0])
@@ -413,6 +354,8 @@ def printSummary(alleles, freq, caseAlleles, ctrlAlleles, np, nc, nn, popCase, p
         else:
             print("%14d" % 0, end='')
             print("%14d" % 0)
+
+
 def writeSummary(alleles, freq, caseAlleles, ctrlAlleles, np, nc, nn, OUTFILE, popCase, popCtrl, popP, popC):
     fp = open(OUTFILE, 'w')
     fp.write('Sample size: %d\n'  % nn[0])
@@ -466,6 +409,8 @@ def writeSummary(alleles, freq, caseAlleles, ctrlAlleles, np, nc, nn, OUTFILE, p
             fp.write("%14d" % 0)
             fp.write("%14d\n" % 0)
     fp.close()
+
+
 def printSummaryQuant(alleles, genes, n):
     print('Sample size: %d'  % n)
     print()
@@ -485,6 +430,8 @@ def printSummaryQuant(alleles, genes, n):
         print("%20s" % allele, end='')
         print("%12d" % alleles[allele], end='')
         print("%12.4f" % (1.0 * alleles[allele] / genes[allele.split('*')[0]]))
+
+
 def writeSummaryQuant(alleles, genes, n, outfile):
     fp = open(outfile, 'w')
     fp.write('Sample size: %d\n\n'  % n)
@@ -502,6 +449,8 @@ def writeSummaryQuant(alleles, genes, n, outfile):
         fp.write("%12d" % alleles[allele])
         fp.write("%12.4f\n" % (1.0 * alleles[allele] / genes[allele.split('*')[0]]))
     fp.close()
+
+
 def printAssocChiFisher(assoc, test, permP=None, permN=None, permNA=None):
     print("%20s" % 'Allele', end='')
     for a in ("A_case","B_case","A_ctrl","B_ctrl","F_case","F_ctrl","Freq"):
@@ -562,6 +511,8 @@ def printAssocChiFisher(assoc, test, permP=None, permN=None, permNA=None):
                 print("%10.2e" % permP[a], end='')
             print("%8d" % permN[a], end='')
             print("%8d" % permNA[a])
+
+
 def writeAssocChiFisher(assoc, test, outfile, permP=None, permN=None, permNA=None):
     fp = open(outfile, 'w')
     fp.write("%20s" % 'Allele')
@@ -624,6 +575,8 @@ def writeAssocChiFisher(assoc, test, outfile, permP=None, permN=None, permNA=Non
             fp.write("%8d" % permN[a])
             fp.write("%8d\n" % permNA[a])
     fp.close()
+
+
 def printAssocRaw(assoc, alleles, permP=None, permN=None, permNA=None):
     for h in ('Gene', 'Chisq',  'DF', 'P_raw'):
         print("%10s" % h, end='')
@@ -674,6 +627,8 @@ def printAssocRaw(assoc, alleles, permP=None, permN=None, permNA=None):
                 print()
                 i = 0
     print()
+
+
 def writeAssocRaw(assoc, alleles, outfile, permP=None, permN=None, permNA=None):
     fp = open(outfile, 'w')
     for h in ('Gene', 'Chisq',  'DF', 'P_raw'):
@@ -725,6 +680,8 @@ def writeAssocRaw(assoc, alleles, outfile, permP=None, permN=None, permNA=None):
                 i = 0
     fp.write('\n')
     fp.close()
+
+
 def printAssocScore(assoc, alleles, permP=None, permN=None, permNA=None):
     for h in ('Gene', 'U'):
         print("%10s" % h, end='')
@@ -768,6 +725,8 @@ def printAssocScore(assoc, alleles, permP=None, permN=None, permNA=None):
                 print()
                 i = 0
     print()
+
+
 def writeAssocScore(assoc, alleles, outfile, permP=None, permN=None, permNA=None):
     fp = open(outfile, 'w')
     for h in ('Gene', 'U'):
@@ -812,6 +771,8 @@ def writeAssocScore(assoc, alleles, outfile, permP=None, permN=None, permNA=None
                 i = 0
     fp.write('\n')
     fp.close()
+
+
 def printLogistic(assoc, permP=None, permN=None, permNA=None):
     print("%20s" % 'Allele', end='')
     for a in ("A_case","B_case","A_ctrl","B_ctrl","F_case","F_ctrl","Freq"):
@@ -860,6 +821,8 @@ def printLogistic(assoc, permP=None, permN=None, permNA=None):
                 print("%10.2e" % permP[a], end='')
             print("%8d" % permN[a], end='')
             print("%8d" % permNA[a])
+
+
 def writeLogistic(assoc, outfile, permP=None, permN=None, permNA=None):
     fp = open(outfile, 'w')
     fp.write("%20s" % 'Allele')
@@ -909,6 +872,8 @@ def writeLogistic(assoc, outfile, permP=None, permN=None, permNA=None):
                 fp.write("%10.2e" % permP[a])
             fp.write("%8d" % permN[a])
             fp.write("%8d\n" % permNA[a])
+
+
 def printLinear(assoc, permP=None, permN=None, permNA=None):
     print("%20s" % 'Allele', end='')
     print("%8s" % "Freq", end='')
@@ -948,6 +913,8 @@ def printLinear(assoc, permP=None, permN=None, permNA=None):
                 print("%10.2e" % permP[a], end='')
             print("%8d" % permN[a], end='')
             print("%8d" % permNA[a])
+
+
 def writeLinear(assoc, outfile, permP=None, permN=None, permNA=None):
     fp = open(outfile, 'w')
     fp.write("%20s" % 'Allele')
@@ -988,6 +955,8 @@ def writeLinear(assoc, outfile, permP=None, permN=None, permNA=None):
                 fp.write("%10.2e" % permP[a])
             fp.write("%8d" % permN[a])
             fp.write("%8d\n" % permNA[a])
+
+
 def printAssocDelta(assoc, perm=None):
     print("%20s" % 'Allele', end='')
     for a in ("Delta","P_FET","OR","P_adj"):
@@ -1017,6 +986,8 @@ def printAssocDelta(assoc, perm=None):
                 print("%10.4f" % assoc[a][4])
             else:
                 print("%10.2e" % assoc[a][4])
+
+
 def writeAssocDelta(assoc, outfile, perm=None):
     fp = open(outfile, 'w')
     fp.write("%20s" % 'Allele')
@@ -1049,6 +1020,8 @@ def writeAssocDelta(assoc, outfile, perm=None):
                 fp.write("%10.4f\n" % assoc[a][4])
             else:
                 fp.write("%10.2e\n" % assoc[a][4])
+
+
 ################  HLAassoc   ###############################################################
 def adjustP(pvalues, method = "Benjamini-Hochberg"):
     """
@@ -1102,6 +1075,8 @@ def adjustP(pvalues, method = "Benjamini-Hochberg"):
                 cp[i] = min(1.0, cp[i])
             j = i
     return cp
+
+
 def assocADRChiFisher(infile, digit, freq, test='chisq', model = 'allelic', adjust='FDR', exclude=None, perm=None, seed=None):
     '''
     Association Analysis for Allelic, Dominant or Recessive Model
@@ -1242,6 +1217,8 @@ def assocADRChiFisher(infile, digit, freq, test='chisq', model = 'allelic', adju
                 else:
                     permP[a] = 1.0 * (permN[a] + 1) / (perm + 1 - permNA[a])
         return assoc, permP, permN, permNA, permNL
+
+
 def assocRaw(infile, digit, freq, exclude=None, perm=None, seed=None):
     '''
     Association Analysis (2 x m)
@@ -1354,6 +1331,8 @@ def assocRaw(infile, digit, freq, exclude=None, perm=None, seed=None):
                 else:
                     permP[a] = 1.0 * (permN[a] + 1) / (perm + 1 - permNA[a])
         return assoc, usedAllele, permP, permN, permNA, permNL
+
+
 def assocScoreU(infile, digit, freq, exclude=None, perm=None, seed=None):
     '''
     Association Analysis (2 x m)
@@ -1450,6 +1429,8 @@ def assocScoreU(infile, digit, freq, exclude=None, perm=None, seed=None):
                 else:
                     permP[a] = 1.0 * (permN[a] + 1) / (perm + 1 - permNA[a])
         return assoc, usedAllele, permP, permN, permNA, permNL
+
+
 def assocDelta(infile, digit, freq=0.05, adjust='FDR', exclude=None, perm=None, seed=None):
     popCase, popCtrl, popP, popC, popN = domCount(infile, digit)
     caseAlleles99, ctrlAlleles99, np99, nc99, nn99 = allelicCount(infile, digit)
@@ -1554,6 +1535,8 @@ def assocDelta(infile, digit, freq=0.05, adjust='FDR', exclude=None, perm=None, 
             permP = 1.0 * (1 + permN[a]) / (1 + perm)
             assoc[a].append(permP)
         return assoc
+
+
 ################  HLAregression ############################################################
 def getAlleles(infile, digits):
     '''
@@ -1605,6 +1588,8 @@ def getAlleles(infile, digits):
                         sys.exit('please use a lower digits!')
     f.close()
     return geneAlleles, geneCol
+
+
 def allelicRecode(infile, digits, test, model):
     '''
     allele dosage coding
@@ -1673,6 +1658,8 @@ def allelicRecode(infile, digits, test, model):
                 for gg in geneAlleles[geneCol[i]]:
                     ans[alleles[0]].append('NA')
     return ans,header
+
+
 def writeRecode(infile, digits, test, model):
     '''
     write coding to a temp file
@@ -1693,6 +1680,8 @@ def writeRecode(infile, digits, test, model):
         f.flush()
     f.close()
     return tmp
+
+
 def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR', exclude=None, covfile=None, covname=None, perm=None, seed=None, test='logistic'):
     '''
     logistitic regression
@@ -1884,6 +1873,8 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
                 else:
                     permP[a] = 1.0 * (permN[a] + 1) / (perm + 1 - permNA[a])
     return assoc, permP, permN, permNA
+
+
 def regressionLinear(infile, digits, freq, model = 'additive', adjust = 'FDR', exclude=None, covfile=None, covname=None, perm=None, seed=None, test='linear'):
     '''
     linear regression with covariants
@@ -2054,16 +2045,22 @@ def regressionLinear(infile, digits, freq, model = 'additive', adjust = 'FDR', e
                 else:
                     permP[a] = 1.0 * (permN[a] + 1) / (perm + 1 - permNA[a])
     return assoc, permP, permN, permNA
+
+
 ###################  HLAAA  ################################################################
 def keyDicts(dict1, dict2):
     k1 = list(dict1.keys())
     k1.extend(list(dict2.keys()))
     return set(k1)
+
+
 def getGenes(alleles):
     genes = []
     for allele in alleles:
         genes.append(allele.split('*')[0])
     return sorted(set(genes))
+
+
 def readAAseq(aafile):
     '''
     read allele sequence
@@ -2078,6 +2075,8 @@ def readAAseq(aafile):
                 seq[arr[0]] = arr[1]
     f.close()
     return seq
+
+
 def readGeno(infile):
     '''
     read geno data
@@ -2124,6 +2123,8 @@ def readGeno(infile):
                             case[arr[k]] = 1
     f.close()
     return case, ctrl, caseGeno, ctrlGeno, ncase, nctrl
+
+
 def consensusSeq(seqs):
     '''
     input: list of amino acid sequences
@@ -2153,6 +2154,8 @@ def consensusSeq(seqs):
             elif flag == 1:
                 conSeq += seqs[0][i]
     return conSeq
+
+
 def getSeq(alleles, seq, consensus=True):
     '''
     find the consensus seq for each allele
@@ -2179,6 +2182,8 @@ def getSeq(alleles, seq, consensus=True):
                 if allele not in aseq:
                     print('no sequence is avaiable for: %s' % allele)
     return aseq
+
+
 def aaAlign(case, ctrl, seq):
     '''
     amino acid alignment
@@ -2196,6 +2201,8 @@ def aaAlign(case, ctrl, seq):
                     tmp.append([allele, seq[allele]])
         aln[gene] = tmp
     return aln
+
+
 def convertID(oldID, allID = 'Allelelist_history.txt'):
     '''
     convert allele id to Release 3.20.0, 2015-04-17
@@ -2219,6 +2226,8 @@ def convertID(oldID, allID = 'Allelelist_history.txt'):
             if ids[i] in ids:
                 newid[i] = ids[ids[i]]
     return newid
+
+
 def deltaCal(case, ctrl, ncase, nctrl):
     '''
     calculate dalta
@@ -2232,6 +2241,8 @@ def deltaCal(case, ctrl, ncase, nctrl):
             ctrl[allele] = 0
         delta[allele] = 1.0 * case[allele] / ncase - 1.0 * ctrl[allele] / nctrl
     return delta
+
+
 def aaCount(Geno, seq, gene, pos):
     '''
     count aa at a locus
@@ -2263,6 +2274,8 @@ def aaCount(Geno, seq, gene, pos):
                                     nn[seq[item[k]][pos]] = 1
                                     gpa[seq[item[k]][pos]] = [item[k]]
     return nn, gpa
+
+
 def aaAssoc(case, ctrl, caseGeno, ctrlGeno, ncase, nctrl, seq, test='fisher'):
     '''
     amino acid association
@@ -2319,6 +2332,8 @@ def aaAssoc(case, ctrl, caseGeno, ctrlGeno, ncase, nctrl, seq, test='fisher'):
                     awr = sorted(set(awr))
                     assoc[(gene, i+1, key)]=[n1, n2, n3, n4, pvalue, OR, awr]
     return assoc
+
+
 def printAA(aln):
     '''
     print(amino acid, 10 aa in each block, 5 blocks per line)
@@ -2342,6 +2357,8 @@ def printAA(aln):
                     else:
                         print("%-11s" % k[1][s:e], end='')
             print()
+
+
 def writeAA(aln, outfile):
     fw = open(outfile, 'w')
     for g in sorted(aln.keys()):
@@ -2363,6 +2380,8 @@ def writeAA(aln, outfile):
                     else:
                         fw.write("%-11s" % k[1][s:e])
             fw.write('\n')
+
+
 def printAAA(assoc):
     print('%-20s' % 'ID', end='')
     for h in ('A_case', 'B_case', 'A_ctrl', 'B_ctrl'):
@@ -2391,6 +2410,8 @@ def printAAA(assoc):
                 awrs = it
             si += 1
         print('\t%s' % awrs)
+
+
 def writeAAA(assoc, outfile):
     fw = open(outfile, 'w')
     fw.write('%-20s' % 'ID')
@@ -2421,6 +2442,8 @@ def writeAAA(assoc, outfile):
             si += 1
         fw.write("\t%s\n" % awrs)
     fw.close()
+
+
 ###################   HLAInteraction   #####################################################
 def simpleTest(data, test = 'fisher'):
     '''
@@ -2438,6 +2461,8 @@ def simpleTest(data, test = 'fisher'):
         except:
             pvalue = 'NA'
     return pvalue
+
+
 def tenTests(x, y, test = 'fisher'):
     '''
     strongest association
@@ -2524,6 +2549,8 @@ def tenTests(x, y, test = 'fisher'):
     OR10 = (n1+0.5) * (n4+0.5) / (n2+0.5) / (n3+0.5)
     p10 = simpleTest(data, test)
     return [p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,OR1,OR2,OR3,OR4,OR5,OR6,OR7,OR8,OR9,OR10]
+
+
 def readAlleleZygInteract(infile, digits):
     caseGeno = []
     ctrlGeno = []
@@ -2536,28 +2563,8 @@ def readAlleleZygInteract(infile, digits):
         for i in range(2,len(alleles),2):
             j = i + 1
             if alleles[i] != 'NA' and alleles[j] != 'NA':
-                names1 = alleles[i].split(":")
-                names2 = alleles[j].split(":")
-                if digits == 8:
-                    if len(names1) < 4 or len(names2) < 4:
-                        sys.exit("--digits 8 requires at least 8 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2] + ":" + names1[3]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2] + ":" + names2[3]
-                if digits == 6:
-                    if len(names1) < 3 or len(names2) < 3:
-                        sys.exit("--digits 6 requires at least 6 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1] + ":" + names1[2]
-                    a4d2 = names2[0] + ":" + names2[1] + ":" + names2[2]
-                if digits == 4:
-                    if len(names1) < 2 or len(names2) < 2:
-                        sys.exit("--digits 4 requires at least 4 digits resolution genotype!")
-                    a4d1 = names1[0] + ":" + names1[1]
-                    a4d2 = names2[0] + ":" + names2[1]
-                elif digits == 2:
-                    if len(names1) < 1 or len(names2) < 1:
-                        sys.exit("--digits 2 requires at least 2 digits resolution genotype!")
-                    a4d1 = names1[0]
-                    a4d2 = names2[0]
+                a4d1 = get_a4d(alleles[i].split(":"),digits)
+                a4d2 = get_a4d(alleles[j].split(":"),digits)
             else:
                 a4d1 = 'NA'
                 a4d2 = 'NA'
@@ -2572,6 +2579,8 @@ def readAlleleZygInteract(infile, digits):
         if tpg:
             caseGeno.append(tpg)
     return caseGeno, ctrlGeno
+
+
 def countAA(Geno, seq, gene1, gene2, pos1, pos2, aa1, aa2):
     '''
     count of factor one and factor two: ++, +-, -+, --
@@ -2611,6 +2620,8 @@ def countAA(Geno, seq, gene1, gene2, pos1, pos2, aa1, aa2):
         else:
             nn += 1
     return [pp, pn, np, nn]
+
+
 def interactAA(keys, caseGeno, ctrlGeno, myseq, test):
     ans = {}
     for k1 in range(0, len(keys)):
@@ -2628,6 +2639,8 @@ def interactAA(keys, caseGeno, ctrlGeno, myseq, test):
                 newkey = keys[k1] + keys[k2]
                 ans[newkey] = ps
     return ans
+
+
 def countAlleleInteract(Geno, allele1, allele2):
     '''
     count of factor one and factor two: ++, +-, -+, --
@@ -2650,6 +2663,8 @@ def countAlleleInteract(Geno, allele1, allele2):
         else:
             nn += 1
     return [pp, pn, np, nn]
+
+
 def interactAllele(keys, caseGeno, ctrlGeno, test):
     ans = {}
     for k1 in range(0, len(keys)):
@@ -2663,6 +2678,8 @@ def interactAllele(keys, caseGeno, ctrlGeno, test):
                 newkey = (keys[k1], keys[k2])
                 ans[newkey] = ps
     return ans
+
+
 def printInteract(assoc, level):
     header = ('ID1', 'ID2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9','P10')
     for h in header:
@@ -2695,6 +2712,8 @@ def printInteract(assoc, level):
             else:
                 print("%10.2f" %  assoc[k][i], end='')
         print()
+
+
 def writeInteract(assoc, level, outfile):
     fw = open(outfile, 'w')
     header = ('ID1', 'ID2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9','P10')
@@ -2729,6 +2748,8 @@ def writeInteract(assoc, level, outfile):
                 fw.write("%10.2f" %  assoc[k][i])
         fw.write('\n')
     fw.close()
+
+
 ##############   HLAZygosity   #############################################################
 def countAAzyg(Geno, seq, gene, pos, aa):
     '''
@@ -2760,6 +2781,8 @@ def countAAzyg(Geno, seq, gene, pos, aa):
                     nn += 1
                 break
     return [pp, pn, nn]
+
+
 def threeTests(x, y, test = 'fisher'):
     '''
     zygosity test
@@ -2790,6 +2813,8 @@ def threeTests(x, y, test = 'fisher'):
     OR3 = (n1+0.5) * (n4+0.5) / (n2+0.5) / (n3+0.5)
     p3 = simpleTest(data, test)
     return [p1, p2, p3, OR1, OR2, OR3]
+
+
 def zygosityAA(keys, caseGeno, ctrlGeno, myseq, test):
     ans = {}
     for k in keys:
@@ -2801,6 +2826,8 @@ def zygosityAA(keys, caseGeno, ctrlGeno, myseq, test):
         ps = threeTests(x, y, test)
         ans[k] = ps
     return ans
+
+
 def countAlleleZyg(Geno, allele):
     '''
     count of homozygous, heterozygous, and absent of alleles
@@ -2824,6 +2851,8 @@ def countAlleleZyg(Geno, allele):
                     nn += 1
                 break
     return [pp, pn, nn]
+
+
 def zygosityAllele(keys, caseGeno, ctrlGeno, test):
     ans = {}
     for k in keys:
@@ -2832,6 +2861,8 @@ def zygosityAllele(keys, caseGeno, ctrlGeno, test):
         ps = threeTests(x, y, test)
         ans[k] = ps
     return ans
+
+
 def printZygosity(ans, level):
     print('%-20s' % 'ID', end='')
     for h in ('Hom_P', 'Het_P', 'Zyg_P'):
@@ -2854,6 +2885,8 @@ def printZygosity(ans, level):
         for i in range(3,6):
             print("%8.4f" % ans[k][i], end='')
         print()
+
+
 def writeZygosity(ans, level, outfile):
     fw = open(outfile, 'w')
     fw.write('%-20s' % 'ID')
@@ -2878,6 +2911,8 @@ def writeZygosity(ans, level, outfile):
             fw.write("%8.4f" % ans[k][i])
         fw.write('\n')
     fw.close()
+
+
 ###################### arguments ######################################################################
 strattime = time.time()
 parser = argparse.ArgumentParser(description='Python for HLA analysis', prog="PyHLA.py")
