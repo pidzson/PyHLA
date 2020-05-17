@@ -16,7 +16,7 @@ import os
 import string
 ###################### Helper Functions ####################################################
 def get_a4d(names, digits):
-    assert(digits % 2 == 0, "digits must be even")
+    assert digits % 2 == 0, "digits must be divisible by 2"
     digits_div_2 = digits//2
     if len(names) < digits_div_2:
         sys.exit("--digits {} requires at least {} digits resolution genotype!".format(digits,digits))
@@ -1615,18 +1615,10 @@ def allelicRecode(infile, digits, test, model):
                 gene1 = alleles[i].split('*')[0]
                 gene2 = alleles[j].split('*')[0]
                 if gene1 == gene2:
-                    if digits == 2:
-                        allele1 = alleles[i].split(':')[0]
-                        allele2 = alleles[j].split(':')[0]
-                    elif digits == 4:
-                        allele1 = alleles[i].split(':')[0] + ':' + alleles[i].split(':')[1]
-                        allele2 = alleles[j].split(':')[0] + ':' + alleles[j].split(':')[1]
-                    elif digits == 6:
-                        allele1 = alleles[i].split(':')[0] + ':' + alleles[i].split(':')[1] + ':' + alleles[i].split(':')[2]
-                        allele2 = alleles[j].split(':')[0] + ':' + alleles[j].split(':')[1] + ':' + alleles[j].split(':')[2]
-                    elif digits == 8:
-                        allele1 = alleles[i].split(':')[0] + ':' + alleles[i].split(':')[1] + ':' + alleles[i].split(':')[2] + ':' + alleles[i].split(':')[3]
-                        allele2 = alleles[j].split(':')[0] + ':' + alleles[j].split(':')[1] + ':' + alleles[j].split(':')[2] + ':' + alleles[j].split(':')[3]
+                    assert digits % 2 == 0, "digits must be divisible by 2"
+                    digits_div_2 = digits//2
+                    allele1 = ':'.join(alleles[i].split(':')[:digits_div_2])
+                    allele2 = ':'.join(alleles[j].split(':')[:digits_div_2])
                     gAlleles = sorted(geneAlleles[gene1])
                     for ga in gAlleles:
                         if ga not in header:
@@ -1758,13 +1750,9 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
                     L95 = 'NA'
                     U95 = 'NA'
                 aname = allele.split('_')
-                nname = aname[0] + '*' + aname[1]
-                if digits == 4:
-                    nname = nname + ':' + aname[2]
-                elif digits == 6:
-                    nname = nname + ':' + aname[2] + ':' + aname[3]
-                elif digits == 8:
-                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[4]
+                assert digits % 2 == 0, "digits must be divisible by 2"
+                digits_div_2 = digits//2
+                nname = aname[0] + '*' + ':'.join(aname[1:digits_div_2+1])
                 ss = []
                 ss.append(n1)
                 ss.append(n2)
@@ -1833,13 +1821,9 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
             geno['PHT'] = xxx
             for allele in alleles:
                 aname = allele.split('_')
-                nname = aname[0] + '*' + aname[1]
-                if digits == 4:
-                    nname = nname + ':' + aname[2]
-                elif digits == 6:
-                    nname = nname + ':' + aname[2] + ':' + aname[3]
-                elif digits == 8:
-                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[4]
+                assert digits % 2 == 0, "digits must be divisible by 2"
+                digits_div_2 = digits//2
+                nname = aname[0] + '*' + ':'.join(aname[1:digits_div_2+1])
                 if nname in assoc:
                     myformula = 'PHT ~ ' + allele
                     if covfile is None:
@@ -1936,13 +1920,9 @@ def regressionLinear(infile, digits, freq, model = 'additive', adjust = 'FDR', e
                     L95 = 'NA'
                     U95 = 'NA'
                 aname = allele.split('_')
-                nname = aname[0] + '*' + aname[1]
-                if digits == 4:
-                    nname = nname + ':' + aname[2]
-                elif digits == 6:
-                    nname = nname + ':' + aname[2] + ':' + aname[3]
-                elif digits == 8:
-                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[3]
+                assert digits % 2 == 0, "digits must be divisible by 2"
+                digits_div_2 = digits//2
+                nname = aname[0] + '*' + ':'.join(aname[1:digits_div_2+1])
                 ss = []
                 ss.append(f12)
                 if p != 'NA':
@@ -2005,13 +1985,9 @@ def regressionLinear(infile, digits, freq, model = 'additive', adjust = 'FDR', e
             geno['PHT'] = xxx
             for allele in alleles:
                 aname = allele.split('_')
-                nname = aname[0] + '*' + aname[1]
-                if digits == 4:
-                    nname = nname + ':' + aname[2]
-                elif digits == 6:
-                    nname = nname + ':' + aname[2] + ':' + aname[3]
-                elif digits == 8:
-                    nname = nname + ':' + aname[2] + ':' + aname[3] + ':' + aname[4]
+                assert digits % 2 == 0, "digits must be divisible by 2"
+                digits_div_2 = digits//2
+                nname = aname[0] + '*' + ':'.join(aname[1:digits_div_2+1])
                 if nname in assoc:
                     myformula = 'PHT ~ ' + allele
                     if covfile is None:
