@@ -14,12 +14,14 @@ import random
 import math
 import os
 import string
+import itertools
 ###################### Helper Functions ####################################################
 def get_a4d(names, digits):
     assert digits % 2 == 0, "digits must be divisible by 2"
     digits_div_2 = digits//2
     if len(names) < digits_div_2:
-        sys.exit("--digits {} requires at least {} digits resolution genotype!".format(digits,digits))
+        if any(map(lambda x: x.startswith("ID"), names)):
+            sys.exit("--digits {} requires at least {} digits resolution genotype!".format(digits,digits))
     return ':'.join(names[:digits_div_2])
 
 
@@ -1544,50 +1546,46 @@ def getAlleles(infile, digits):
     return a dictionary, keys are the gene names, values are the alleles
     return second dictionary, keys are the start column, values are the gene names
     '''
-    geneAlleles = {}
-    geneCol = {}
-    f = open(infile)
-    for line in f:
-        line = line.rstrip()
-        alleles = line.split()
-        for i in range(2,len(alleles)):
-            if alleles[i] != 'NA':
-                names = alleles[i].split(":")
-                gene = names[0].split("*")
-                if i not in geneCol:
-                    geneCol[i] = gene[0]
-                if gene[0] not in geneAlleles:
-                    geneAlleles[gene[0]] = []
-                if digits == 4:
-                    if len(names)>=2:
-                        temp = names[0] + ":" + names[1]
-                        if temp not in geneAlleles[gene[0]]:
-                            geneAlleles[gene[0]].append(temp)
-                    else:
-                        sys.exit('please use a lower digits!')
-                elif digits == 2:
-                    if len(names)>=1:
-                        temp = names[0]
-                        if temp not in geneAlleles[gene[0]]:
-                            geneAlleles[gene[0]].append(temp)
-                    else:
-                        sys.exit('please use a lower digits!')
-                elif digits == 6:
-                    if len(names)>=3:
-                        temp = names[0] + ":" + names[1] + ":" + names[2]
-                        if temp not in geneAlleles[gene[0]]:
-                            geneAlleles[gene[0]].append(temp)
-                    else:
-                        sys.exit('please use a lower digits!')
-                elif digits == 8:
-                    if len(names)>=4:
-                        temp = names[0] + ":" + names[1] + ":" + names[2] + ":" + names[3]
-                        if temp not in geneAlleles[gene[0]]:
-                            geneAlleles[gene[0]].append(temp)
-                    else:
-                        sys.exit('please use a lower digits!')
-    f.close()
-    return geneAlleles, geneCol
+    global COMBINATIONS
+    if not COMBINATIONS:
+        geneAlleles = {}
+        geneCol = {}
+        f = open(infile)
+        for line in f:
+            line = line.rstrip()
+            alleles = line.split()
+            for i in range(2,len(alleles)):
+                if alleles[i] != 'NA':
+                    names = alleles[i].split(":")
+                    gene = names[0].split("*")
+                    if i not in geneCol:
+                        geneCol[i] = gene[0]
+                    if gene[0] not in geneAlleles:
+                        geneAlleles[gene[0]] = []
+                    temp = get_a4d(names, digits)
+                    if temp not in geneAlleles[gene[0]]:
+                        geneAlleles[gene[0]].append(temp)
+        f.close()
+        return geneAlleles, geneCol
+    else:
+        #combinations
+        geneAlleles = set()
+        clist = COMBINATIONS.split(',')
+        assert len(clist) == len(list(set(clist))), "duplicates in combinations"
+        with open(infile) as f:
+            for line in f:
+                line = line.rstrip()
+                alleles = list(map(lambda x: get_a4d(x.split(':'),digits),filter(lambda x: x.split('*')[0] in clist, line.split()[2:])))
+                if len(alleles) != len(clist) * 2:
+                    print('cannot use {}, not containing everything from {}'.format(alleles, clist))
+                    continue
+                alleles.sort()
+                pairs = list(zip(alleles[::2],alleles[1::2]))
+                assert all(map(lambda p: len(p) == 2 and p[0].split('*')[0] == p[1].split('*')[0],pairs)), "data mixed up"
+                combos = itertools.product(*pairs)
+                for c in combos:
+                    geneAlleles.add(c)
+        return list(geneAlleles), None
 
 
 def allelicRecode(infile, digits, test, model):
@@ -1598,57 +1596,88 @@ def allelicRecode(infile, digits, test, model):
     return a list contains the alleles
     return a dictionary contains the coding for alleles
     '''
+    global COMBINATIONS
     geneAlleles, geneCol = getAlleles(infile, digits)
     header = ['IID','PHT']
-    ans = {}
+    if COMBINATIONS:
+        geneAlleles.sort()
+        header += geneAlleles
+    ans = []
     f = open(infile)
-    for line in f:
+    for idx,line in enumerate(f):
         line = line.rstrip()
         alleles = line.split()
+        if COMBINATIONS:
+            if idx == 0:
+                pairs=(len(alleles)-2)//2
+            elif (len(alleles)-2)//2 != pairs:
+                print('loci count mismatch: expected {} got {}'.format(pairs, (len(alleles)-2)//2))
+                sys.exit(1)
+        entry = []
         if test == 'logistic':
-            ans[alleles[0]] = [alleles[0],int(alleles[1])-1]
+            entry = [alleles[0],int(alleles[1])-1]
         elif test == 'linear':
-            ans[alleles[0]] = [alleles[0],alleles[1]]
-        for i in range(2,len(alleles),2):
-            j = i + 1
-            if alleles[i] != 'NA' and alleles[j] != 'NA':
-                gene1 = alleles[i].split('*')[0]
-                gene2 = alleles[j].split('*')[0]
-                if gene1 == gene2:
-                    assert digits % 2 == 0, "digits must be divisible by 2"
-                    digits_div_2 = digits//2
-                    allele1 = ':'.join(alleles[i].split(':')[:digits_div_2])
-                    allele2 = ':'.join(alleles[j].split(':')[:digits_div_2])
-                    gAlleles = sorted(geneAlleles[gene1])
-                    for ga in gAlleles:
-                        if ga not in header:
-                            header.append(ga)
-                        if model == 'additive':
-                            if allele1 == ga and allele2 == ga:
-                                ans[alleles[0]].append(2)
-                            elif allele1 == ga or allele2 == ga:
-                                ans[alleles[0]].append(1)
-                            else:
-                                ans[alleles[0]].append(0)
-                        elif model == 'dom':
-                            if allele1 == ga and allele2 == ga:
-                                ans[alleles[0]].append(1)
-                            elif allele1 == ga or allele2 == ga:
-                                ans[alleles[0]].append(1)
-                            else:
-                                ans[alleles[0]].append(0)
-                        elif model =='rec':
-                            if allele1 == ga and allele2 == ga:
-                                ans[alleles[0]].append(1)
-                            elif allele1 == ga or allele2 == ga:
-                                ans[alleles[0]].append(0)
-                            else:
-                                ans[alleles[0]].append(0)
+            entry = [alleles[0],alleles[1]]
+        real_alleles = alleles[2:]
+        if COMBINATIONS:
+            clist = COMBINATIONS.split(',')
+            real_alleles.sort()
+            real_alleles = list(filter(lambda x: x.split('*')[0] in clist, real_alleles))
+        iterable = zip(real_alleles[::2], real_alleles[1::2])
+        if COMBINATIONS:
+            iterable = map(lambda x: map(lambda y: get_a4d(y.split(':'),digits),x), iterable)
+            iterable = itertools.product(*[sorted(x) for x in iterable])
+        for gi,genes in enumerate(iterable):
+            if not COMBINATIONS:
+                if all(map(lambda x : x != 'NA',genes)):
+                    loci = list(map(lambda x: x.split('*')[0],genes))
+                    if loci[1:] == loci[:-1]:
+                        assert digits % 2 == 0, "digits must be divisible by 2"
+                        digits_div_2 = digits//2
+                        alleles = list(map(lambda x: ':'.join(x.split(':')[:digits_div_2]),genes))
+                        #assert len(alleles) == 2, "wtf"
+                        allele1,allele2 = tuple(alleles)
+                        gAlleles = sorted(geneAlleles[loci[0]])
+                        for ga in gAlleles:
+                            if ga not in header:
+                                header.append(ga)
+                            if model == 'additive':
+                                if allele1 == ga and allele2 == ga:
+                                    entry.append(2)
+                                elif allele1 == ga or allele2 == ga:
+                                    entry.append(1)
+                                else:
+                                    entry.append(0)
+                            elif model == 'dom':
+                                if allele1 == ga and allele2 == ga:
+                                    entry.append(1)
+                                elif allele1 == ga or allele2 == ga:
+                                    entry.append(1)
+                                else:
+                                    entry.append(0)
+                            elif model =='rec':
+                                if allele1 == ga and allele2 == ga:
+                                    entry.append(1)
+                                elif allele1 == ga or allele2 == ga:
+                                    entry.append(0)
+                                else:
+                                    entry.append(0)
+                    else:
+                        sys.exit("input format is wrong!")
                 else:
-                    sys.exit("input format is wrong!")
+                    for gg in geneAlleles[geneCol[2*(gi+1)]]:
+                        entry.append('NA')
             else:
-                for gg in geneAlleles[geneCol[i]]:
-                    ans[alleles[0]].append('NA')
+                #combinations
+                centry = entry[:]
+                for ga in geneAlleles:
+                    if genes == ga:
+                        centry.append(1)
+                    else:
+                        centry.append(0)
+                ans.append(centry)
+        if not COMBINATIONS:
+            ans.append(entry)
     return ans,header
 
 
@@ -1657,19 +1686,21 @@ def writeRecode(infile, digits, test, model):
     write coding to a temp file
     return the temp file name
     '''
+    global COMBINATIONS
     tmp = time.strftime("%H%M%S%d%b%Y")
     tmp = tmp + '.txt'
     f = open(tmp,'w')
     ans, header = allelicRecode(infile, digits, test, model)
     tab = str.maketrans('*:', '__')
-    header = [i.translate(tab) for i in header]
+    if COMBINATIONS:
+        header = header[:2] + ['X'.join([j.translate(tab) for j in i]) for i in header[2:]]
+    else:
+        header = [i.translate(tab) for i in header]
     f.write('\t'.join(header))
     f.write('\n')
-    f.flush()
-    for i in ans:
-        f.write('\t'.join(map(str, ans[i])))
+    for e in ans:
+        f.write('\t'.join(map(str, e)))
         f.write('\n')
-        f.flush()
     f.close()
     return tmp
 
@@ -1680,8 +1711,10 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
     output: dictionary, key: allele, value: statistic includes count, freq, p and OR
     '''
     ### geno
+    global COMBINATIONS
     tfile = writeRecode(infile, digits, test, model)
     geno = pd.read_csv(tfile,delim_whitespace= True, header = 0)
+    print('recoding done')
     os.remove(tfile)
     alleles = list(geno.columns.values)[2:]
     ### exclude alleles
@@ -1706,14 +1739,21 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
     assoc = {}
     for allele in alleles:
         if allele not in excludeAlleles:
+            if COMBINATIONS:
+                mul = 1
+            else:
+                mul = 2
             n1 = int(geno[allele].where(geno['PHT'] == 1).sum(axis=0)) # case
-            n2 = int(geno[allele].where(geno['PHT'] == 1).count()) * 2 # case
+            n2 = int(geno[allele].where(geno['PHT'] == 1).count()) * mul # case
             n3 = int(geno[allele].where(geno['PHT'] == 0).sum(axis=0)) # control
-            n4 = int(geno[allele].where(geno['PHT'] == 0).count()) * 2 # control
-            f1 = 1.0 * n1 / n2
-            f2 = 1.0 * n3 / n4
-            f12 = 1.0 * (n1 + n3) / (n2 + n4)
-            if f12 > freq:
+            n4 = int(geno[allele].where(geno['PHT'] == 0).count()) * mul # control
+            try:
+                f1 = 1.0 * n1 / n2
+                f2 = 1.0 * n3 / n4
+                f12 = 1.0 * (n1 + n3) / (n2 + n4)
+            except:
+                f12 = -1000
+            if n1 > 0 and f12 > freq:
                 usedAllele.append(allele)
                 n2 -= n1
                 n4 -= n3
@@ -1726,11 +1766,14 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
                             myformula = myformula + ' + ' + name
                         else:
                             print('can not find covariant name ' + '"' + name + '" in covariant file')
-                            sys.exit()
+                            sys.exit(1)
                     geno9 = geno.loc[:, ['IID', 'PHT', allele]]
                     mydata = pd.merge(geno9, cov, on='IID', how='inner')
                 try:
-                    lr = smf.logit(formula = myformula, data = mydata).fit(maxiter=100, disp=False)
+                    maxiter = 100
+                    if COMBINATIONS:
+                        maxiter *= 10
+                    lr = smf.logit(formula = myformula, data = mydata).fit(maxiter=maxiter, disp=False)
                     p = lr.pvalues[1]
                     try:
                         OR = math.exp(lr.params[1])
@@ -1749,10 +1792,16 @@ def regressionLogistic(infile, digits, freq, model = 'additive', adjust = 'FDR',
                     OR = 'NA'
                     L95 = 'NA'
                     U95 = 'NA'
-                aname = allele.split('_')
                 assert digits % 2 == 0, "digits must be divisible by 2"
                 digits_div_2 = digits//2
-                nname = aname[0] + '*' + ':'.join(aname[1:digits_div_2+1])
+                if not COMBINATIONS:
+                    aname = allele.split('_')
+                    nname = aname[0] + '*' + ':'.join(aname[1:digits_div_2+1])
+                else:
+                    aname = allele.split('X')
+                    #print(aname)
+                    aname = [x.split('_') for x in aname]
+                    nname = '+'.join([x[0]+'*'+':'.join(x[1:digits_div_2+1]) for x in aname])
                 ss = []
                 ss.append(n1)
                 ss.append(n2)
@@ -1907,7 +1956,7 @@ def regressionLinear(infile, digits, freq, model = 'additive', adjust = 'FDR', e
                             myformula = myformula + ' + ' + name
                         else:
                             print('can not find covariant name ' + '"' + name + '" in covariant file')
-                            sys.exit()
+                            sys.exit(1)
                 try:
                     lr = smf.ols(formula = myformula, data = mydata).fit(maxiter=100, disp=False)
                     p = lr.pvalues[1]
@@ -2660,7 +2709,7 @@ def printInteract(assoc, level):
     header = ('ID1', 'ID2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9','P10')
     for h in header:
         if h == 'ID1' or h == 'ID2':
-            print("%-12s" % h, end='')
+            print("%-16s" % h, end='')
         else:
             print("%12s" % h, end='')
     header2 = ('OR3', 'OR4', 'OR5', 'OR6', 'OR7', 'OR8', 'OR9','OR10')
@@ -2670,11 +2719,11 @@ def printInteract(assoc, level):
 
     for k in sorted(assoc.keys()):
         if level == 'residue':
-            print("%-12s" % (k[0]+'_'+str(k[1])+'_'+k[2]), end='')
-            print("%-12s" % (k[3]+'_'+str(k[4])+'_'+k[5]), end='')
+            print("%-16s" % (k[0]+'_'+str(k[1])+'_'+k[2]), end='')
+            print("%-16s" % (k[3]+'_'+str(k[4])+'_'+k[5]), end='')
         else:
-            print("%-12s"  % k[0], end='')
-            print("%-12s" % k[1], end='')
+            print("%-16s"  % k[0], end='')
+            print("%-16s" % k[1], end='')
         for i in range(2, 10):
             if assoc[k][i] == 'NA':
                 print("%12s" % "NA", end='')
@@ -2695,9 +2744,9 @@ def writeInteract(assoc, level, outfile):
     header = ('ID1', 'ID2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9','P10')
     for h in header:
         if h == 'ID1' or h == 'ID2':
-            fw.write("%-12s" % h)
+            fw.write("%-16s" % h)
         else:
-            fw.write("%12s" % h)
+            fw.write("%16s" % h)
     header2 = ('OR3', 'OR4', 'OR5', 'OR6', 'OR7', 'OR8', 'OR9','OR10')
     for h in header2:
         fw.write("%10s" % h)
@@ -2705,11 +2754,11 @@ def writeInteract(assoc, level, outfile):
 
     for k in sorted(assoc.keys()):
         if level == 'residue':
-            fw.write("%-12s" % (k[0]+'_'+str(k[1])+'_'+k[2]))
-            fw.write("%-12s" % (k[3]+'_'+str(k[4])+'_'+k[5]))
+            fw.write("%-16s" % (k[0]+'_'+str(k[1])+'_'+k[2]))
+            fw.write("%-16s" % (k[3]+'_'+str(k[4])+'_'+k[5]))
         else:
-            fw.write("%-12s"  % k[0])
-            fw.write("%-12s" % k[1])
+            fw.write("%-16s"  % k[0])
+            fw.write("%-16s" % k[1])
         for i in range(2, 10):
             if assoc[k][i] == 'NA':
                 fw.write("%12s" % "NA")
@@ -2903,13 +2952,14 @@ parser.add_argument('-s', '--summary', help='data summary', action='store_true')
 parser.add_argument('-a', '--assoc', help='association analysis', action='store_true')
 parser.add_argument('-m', '--model', help='genetic model, default allelic', default='allelic', type=str, choices=['allelic','dom','rec','additive'])
 parser.add_argument('-t', '--test', help='statistical test method, default fisher', default='fisher', type=str, choices=['fisher','chisq','logistic','linear'])
-parser.add_argument('-f', '--freq', help='minimal frequency, default 0', default=0.05, type=float)
+parser.add_argument('-f', '--freq', help='minimal frequency, default 0.05', default=0.05, type=float)
 parser.add_argument('-j', '--adjust', help='p value correction, default FDR', default='FDR', type=str,choices=['FDR','FDR_BY','Bonferroni','Holm'])
 parser.add_argument('-e', '--exclude', help='exclude alleles file', type=str)
 parser.add_argument('-c', '--covar', help='covariants file', type=str)
 parser.add_argument('-n', '--covar-name', help='select a particular subset of covariates', type=str)
 parser.add_argument('-p', '--perm', help='number of permutation', type=int)
 parser.add_argument('-r', '--seed', help='random seed', type=int)
+parser.add_argument('-C', '--combinations', help='use given loci as comnined features', type=str)
 ### amino acid association analysis
 parser.add_argument('-A', '--assoc-AA', help='amino acid association analysis', action='store_true')
 parser.add_argument('-u', '--consensus', help='use the sonsensus amino acid senquence', action='store_true')
@@ -2942,6 +2992,7 @@ PERM = args['perm'] if 'perm' in args else None
 COVFILE = args['covar'] if 'covar' in args else None
 COVNAME = args['covar_name'] if 'covar_name' in args else None
 EXCLUDE = args['exclude'] if 'exclude' in args else None
+COMBINATIONS = args['combinations'] if 'combinations' in args else None
 
 AAA = args['assoc_AA'] if 'assoc_AA' in args else None
 CONSENSUS = args['consensus'] if 'consensus' in args else None
